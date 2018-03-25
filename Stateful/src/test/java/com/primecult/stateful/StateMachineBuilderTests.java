@@ -52,4 +52,32 @@ public class StateMachineBuilderTests {
                 }).build();
         assertNotNull(machine);
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void registeringSameTransitionInputToMultipleTransitionOutputsThrows() {
+        String initialState = "Zero";
+        String oneState = "One";
+        String twoState = "Two";
+        Integer oneTrigger = 1;
+        Integer oneDifferentTrigger = 11;
+        StateMachine.Builder<String, Integer> builder = new StateMachine.Builder<>(initialState,
+                new StateTransitionHandler<String, Integer>() {
+                    @Override
+                    public void preTransition(String from, Integer integer, String to) {
+
+                    }
+
+                    @Override
+                    public void postTransition(String from, Integer integer, String to) {
+
+                    }
+
+                    @Override
+                    public void illegalTransition(String from, Integer integer) {
+
+                    }
+                })
+                .transition(initialState, oneTrigger, oneState)
+                .transition(initialState, oneTrigger, twoState);
+    }
 }

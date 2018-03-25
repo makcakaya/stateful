@@ -23,6 +23,17 @@ final class Transition<TState, TTrigger> {
         _output = TransitionOutput.ignore();
     }
 
+    public Transition(TransitionInput<TState, TTrigger> input, TransitionOutput<TState> output) {
+        if (input == null) {
+            throw new IllegalArgumentException("input");
+        }
+        if (output == null) {
+            throw new IllegalArgumentException("output");
+        }
+        _input = input;
+        _output = output;
+    }
+
     public TState getOriginalState() {
         return _input.getState();
     }
@@ -39,6 +50,14 @@ final class Transition<TState, TTrigger> {
         return _output.isIgnored();
     }
 
+    public TransitionInput<TState, TTrigger> getInput() {
+        return _input;
+    }
+
+    public TransitionOutput<TState> getOutput() {
+        return _output;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == null) {
@@ -49,7 +68,7 @@ final class Transition<TState, TTrigger> {
         }
 
         Transition<TState, TTrigger> otherCasted = (Transition<TState, TTrigger>) other;
-        return _input == otherCasted._input && _output == otherCasted._output;
+        return _input.equals(otherCasted._input) && _output.equals(otherCasted._output);
     }
 
     @Override
