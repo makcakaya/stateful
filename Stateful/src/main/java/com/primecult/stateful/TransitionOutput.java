@@ -3,10 +3,12 @@ package com.primecult.stateful;
 public final class TransitionOutput<TState> {
     private final TState _state;
     private final boolean _ignored;
+    private final boolean _illegal;
 
-    private TransitionOutput(TState state, boolean ignored) {
+    private TransitionOutput(TState state, boolean ignored, boolean illegal) {
         _state = state;
         _ignored = ignored;
+        _illegal = illegal;
     }
 
     public TState getState() {
@@ -15,6 +17,10 @@ public final class TransitionOutput<TState> {
 
     public boolean isIgnored() {
         return _ignored;
+    }
+
+    public boolean isIllegal() {
+        return _illegal;
     }
 
     @Override
@@ -28,7 +34,7 @@ public final class TransitionOutput<TState> {
         }
 
         TransitionOutput<TState> casted = (TransitionOutput<TState>) o;
-        return _state == casted._state && _ignored == casted._ignored;
+        return _state == casted._state && _ignored == casted._ignored && _illegal == casted._illegal;
     }
 
     @Override
@@ -36,17 +42,22 @@ public final class TransitionOutput<TState> {
         int hash = 11;
         hash = 31 * hash + (_state == null ? 0 : _state.hashCode());
         hash = 37 * hash + (_ignored ? 0 : 1);
+        hash = 41 * hash + (_illegal ? 0 : 1);
         return hash;
     }
 
-    public static <TState> TransitionOutput<TState> newState(TState state) {
+    public static <TState> TransitionOutput<TState> legal(TState state) {
         if (state == null) {
             throw new IllegalArgumentException("state");
         }
-        return new TransitionOutput<>(state, false);
+        return new TransitionOutput<>(state, false, false);
     }
 
     public static <TState> TransitionOutput<TState> ignore() {
-        return new TransitionOutput<>(null, true);
+        return new TransitionOutput<>(null, true, false);
+    }
+
+    public static <TState> TransitionOutput<TState> illegal() {
+        return new TransitionOutput<>(null, false, true);
     }
 }

@@ -152,7 +152,7 @@ public class StateMachineTests {
                 new StateTransitionHandler<String, Integer>() {
                     @Override
                     public void preTransition(String from, Integer trigger, String to) {
-                        transitions.add(new Transition<String, Integer>(from, trigger, to));
+                        transitions.add(Transition.legal(new TransitionInput<>(from, trigger), TransitionOutput.legal(to)));
                     }
 
                     @Override
@@ -190,7 +190,7 @@ public class StateMachineTests {
 
                     @Override
                     public void postTransition(String from, Integer trigger, String to) {
-                        transitions.add(new Transition<String, Integer>(from, trigger, to));
+                        transitions.add(Transition.legal(from, trigger, to));
                     }
 
                     @Override
@@ -359,5 +359,37 @@ public class StateMachineTests {
         // Trigger reentrant transition
         machine.trigger(1);
         Assert.assertFalse(illegalTransitions[0]);
+    }
+
+    @Test
+    public void canGetFirstInvalidTransitionInfo() {
+        String initialState = "Zero";
+        final String oneState = "One";
+        final boolean[] illegalTransitions = new boolean[]{false};
+        StateMachine<String, Integer> machine = new StateMachine.Builder<>(initialState,
+                new StateTransitionHandler<String, Integer>() {
+                    @Override
+                    public void preTransition(String from, Integer trigger, String to) {
+
+                    }
+
+                    @Override
+                    public void postTransition(String from, Integer trigger, String to) {
+
+                    }
+
+                    @Override
+                    public void illegalTransition(String from, Integer trigger) {
+
+                    }
+                })
+                .transition(initialState, 1, oneState)
+                .build();
+        Transition<String, Integer> illegalTransition = Transition.illegal(new TransitionInput<>(initialState, 3));
+        machine.trigger(illegalTransition.getTrigger());
+        machine.trigger(5);
+        machine.trigger(11);
+
+        Assert.assertEquals(illegalTransition, machine.getFirstIllegalTransition());
     }
 }

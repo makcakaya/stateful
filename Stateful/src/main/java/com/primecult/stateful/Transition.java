@@ -4,26 +4,7 @@ final class Transition<TState, TTrigger> {
     private final TransitionInput<TState, TTrigger> _input;
     private final TransitionOutput<TState> _output;
 
-    public Transition(TState from, TTrigger trigger, TState to) {
-        if (from == null) {
-            throw new IllegalArgumentException("from");
-        }
-        if (trigger == null) {
-            throw new IllegalArgumentException("trigger");
-        }
-        if (to == null) {
-            throw new IllegalArgumentException("to");
-        }
-        _input = new TransitionInput<>(from, trigger);
-        _output = TransitionOutput.newState(to);
-    }
-
-    public Transition(TState state, TTrigger trigger) {
-        _input = new TransitionInput<>(state, trigger);
-        _output = TransitionOutput.ignore();
-    }
-
-    public Transition(TransitionInput<TState, TTrigger> input, TransitionOutput<TState> output) {
+    private Transition(TransitionInput<TState, TTrigger> input, TransitionOutput<TState> output) {
         if (input == null) {
             throw new IllegalArgumentException("input");
         }
@@ -48,6 +29,10 @@ final class Transition<TState, TTrigger> {
 
     public boolean isIgnored() {
         return _output.isIgnored();
+    }
+
+    public boolean isIllegal() {
+        return _output.isIllegal();
     }
 
     public TransitionInput<TState, TTrigger> getInput() {
@@ -77,5 +62,30 @@ final class Transition<TState, TTrigger> {
         hash = 31 * hash + _input.hashCode();
         hash = 37 * hash + _output.hashCode();
         return hash;
+    }
+
+    public static <TState, TTrigger> Transition<TState, TTrigger> legal(TState originalState, TTrigger trigger, TState newState) {
+        if (originalState == null) {
+            throw new IllegalArgumentException("originalState");
+        }
+        if (trigger == null) {
+            throw new IllegalArgumentException("trigger");
+        }
+        if (newState == null) {
+            throw new IllegalArgumentException("newState");
+        }
+        return new Transition<>(new TransitionInput<>(originalState, trigger), TransitionOutput.legal(newState));
+    }
+
+    public static <TState, TTrigger> Transition<TState, TTrigger> legal(TransitionInput<TState, TTrigger> input, TransitionOutput<TState> output) {
+        return new Transition<>(input, output);
+    }
+
+    public static <TState, TTrigger> Transition<TState, TTrigger> illegal(TransitionInput<TState, TTrigger> input) {
+        return new Transition<>(input, TransitionOutput.<TState>illegal());
+    }
+
+    public static <TState, TTrigger> Transition<TState, TTrigger> ignored(TransitionInput<TState, TTrigger> input) {
+        return new Transition<>(input, TransitionOutput.<TState>ignore());
     }
 }
