@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -283,5 +284,80 @@ public class StateMachineTests {
         Assert.assertEquals(twoState, machine.getCurrentState());
         machine.trigger(1); // Ignored
         Assert.assertEquals(twoState, machine.getCurrentState());
+    }
+
+    @Test
+    public void reentrantTransitionCallsHandlers() {
+        String initialState = "Zero";
+        final String oneState = "One";
+        final boolean[] handlerCalls = new boolean[2];
+        Arrays.fill(handlerCalls, false);
+        StateMachine<String, Integer> machine = new StateMachine.Builder<>(initialState,
+                new StateTransitionHandler<String, Integer>() {
+                    @Override
+                    public void preTransition(String from, Integer trigger, String to) {
+                        if (from == oneState && trigger == 1 && to == oneState) {
+                            handlerCalls[0] = true;
+                        }
+                    }
+
+                    @Override
+                    public void postTransition(String from, Integer trigger, String to) {
+                        if (from == oneState && trigger == 1 && to == oneState) {
+                            handlerCalls[1] = true;
+                        }
+                    }
+
+                    @Override
+                    public void illegalTransition(String from, Integer trigger) {
+                    }
+                })
+                .transition(initialState, 1, oneState)
+                .transition(oneState, 1, oneState) // Reentrant transition
+                .build();
+
+        machine.trigger(1);
+        Assert.assertFalse(handlerCalls[0]);
+        Assert.assertFalse(handlerCalls[1]);
+
+        machine.trigger(1);
+        Assert.assertTrue(handlerCalls[0]);
+        Assert.assertTrue(handlerCalls[1]);
+    }
+
+    @Test
+    public void reentrantTransitionDoesNotCauseIllegalTransition() {
+        String initialState = "Zero";
+        final String oneState = "One";
+        final boolean[] illegalTransitions = new boolean[]{false};
+        StateMachine<String, Integer> machine = new StateMachine.Builder<>(initialState,
+                new StateTransitionHandler<String, Integer>() {
+                    @Override
+                    public void preTransition(String from, Integer trigger, String to) {
+
+                    }
+
+                    @Override
+                    public void postTransition(String from, Integer trigger, String to) {
+
+                    }
+
+                    @Override
+                    public void illegalTransition(String from, Integer trigger) {
+                        if (from == oneState && trigger == 1) {
+                            illegalTransitions[0] = true;
+                        }
+                    }
+                })
+                .transition(initialState, 1, oneState)
+                .transition(oneState, 1, oneState) // Reentrant transition
+                .build();
+
+        machine.trigger(1);
+        Assert.assertFalse(illegalTransitions[0]);
+
+        // Trigger reentrant transition
+        machine.trigger(1);
+        Assert.assertFalse(illegalTransitions[0]);
     }
 }
